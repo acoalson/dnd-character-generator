@@ -1,80 +1,102 @@
-# dnd-character-generator
+# D&D Character Generator (Microservice + CLI)
 
-# D&D API Microservice
+Interactive CLI that builds a D&D 5e character using a Flask microservice which proxies the public D&D 5e API.
 
 ## Overview
+- `server.py`: Flask microservice exposing race/class endpoints (proxies `https://www.dnd5eapi.co/api`).
+- `client.py`: Interactive terminal app that calls the microservice to guide character creation (race, class, proficiencies, ability rolls).
 
-This microservice provides endpoints to programmatically access information about Dungeons & Dragons (D&D) races and classes through the [D&D 5e API](https://www.dnd5eapi.co/). You can make API calls to retrieve lists of races and classes, as well as detailed information about specific races and classes.
-
-## Getting Started
-
-To use this microservice, follow the instructions below.
-
-### Prerequisites
-
-- Python installed (version 3.x)
-- Flask installed (`pip install flask`)
-- Requests library installed (`pip install requests`)
-
-### Starting the Microservice
-
-1. Clone the repository to your local machine:
-
-   ```bash
-   git clone https://github.com/your-username/dnd-api-microservice.git
-   ```
-
-2. Change into the project directory:
-
+## Prerequisites
+- Python 3.9+
+- Install deps:
   ```bash
-  cd dnd-api-microservice
+  pip install -r requirements.txt
   ```
-  
-3. Run the Flask microservice:
+  If you don't have a requirements file, install directly:
+  ```bash
+  pip install flask requests
+  ```
 
+## Run
+1) Start the microservice:
    ```bash
    python server.py
    ```
+   Service listens on `http://127.0.0.1:5000`.
 
-The microservice will be running at http://localhost:5000 or http://127.0.0.1:5000/
+2) In a second terminal, start the CLI:
+   ```bash
+   python client.py
+   ```
 
-## API Endpoints
+## API (server.py)
+Base URL: `http://127.0.0.1:5000`
 
-### 1. Get All Races
-Endpoint: /get_races <br />
-Method: POST <br />
-Description: Retrieves a list of all D&D races. <br />
-Example Request: 
-```bash
-data = {'race': 'elf'}
-requests.post('http://127.0.0.1:5000/'+'get_race_info', json=data)
-```
+- GET ALL RACES
+  - Endpoint: `/get_races`
+  - Method: `POST`
+  - Response (200): JSON from D&D API `GET /api/races`
+  - Example (Python):
+    ```python
+    requests.post('http://127.0.0.1:5000/get_races', json={})
+    ```
 
-### 2. Get Race Information
-Endpoint: /get_race_info <br />
-Method: POST <br />
-Description: Retrieves detailed information about a specific D&D race. <br />
-Parameters: <br />
-* race (string): The name of the race.
+- GET RACE INFO
+  - Endpoint: `/get_race_info`
+  - Method: `POST`
+  - Body: `{ "race": "elf" }`
+  - Response (200): JSON from D&D API `GET /api/races/{race}`
+  - Example:
+    ```python
+    requests.post('http://127.0.0.1:5000/get_race_info', json={"race": "elf"})
+    ```
 
-### 3. Get All Classes
-Endpoint: /get_classes <br />
-Method: POST <br />
-Description: Retrieves a list of all D&D classes.
+- GET ALL CLASSES
+  - Endpoint: `/get_classes`
+  - Method: `POST`
+  - Response (200): JSON from D&D API `GET /api/classes`
+  - Example:
+    ```python
+    requests.post('http://127.0.0.1:5000/get_classes', json={})
+    ```
 
-### 4. Get Class Information
-Endpoint: /get_class_info <br />
-Method: POST <br />
-Description: Retrieves detailed information about a specific D&D class. <br />
-Parameters: <br />
-* class (string): The name of the class.
+- GET CLASS INFO
+  - Endpoint: `/get_class_info`
+  - Method: `POST`
+  - Body: `{ "class": "wizard" }`
+  - Response (200): JSON from D&D API `GET /api/classes/{class}`
+  - Example:
+    ```python
+    requests.post('http://127.0.0.1:5000/get_class_info', json={"class": "wizard"})
+    ```
 
-### 5. Format Race Description
-Endpoint: /format_race_description <br />
-Method: POST <br />
-Description: Formats race based on alignment, age, size, and languages
+Notes:
+- Endpoints proxy upstream and return the upstream JSON on success.
+- On failure, the service prints an error to stdout and returns nothing (current behavior). Consider improving with structured errors.
 
-## Receiving Data
-Once a POST request is sent to [server.py](http://server.py), the response is handled by checking for success and processing the returned JSON data.
-- Check the Status Code: response.status_code contains the HTTP status code returned by the microservice. A status code of 200 typically indicates a successful request.
-- Retrieve JSON Data: If the status code is 200, response.json() is used to parse the JSON data returned by the microservice.
+## CLI (client.py)
+- Guided UI with headers, steps, and clear prompts
+- Race and class selection with numbered options, help views, and randomization
+- Proficiency selection supports comma-separated input, `ls` to reprint, and `rand` to auto-fill
+- Ability score rolling (4d6 drop lowest) with tidy output
+- Final character summary (race, class, proficiencies, stats)
+
+## Project Goals (Microservice Focus)
+- Demonstrate a client consuming a simple domain microservice
+- Encapsulate external API behind your service contract
+- Provide a basis for enhancements: caching, retries, health checks, OpenAPI docs
+
+## Suggested Enhancements
+- Add timeouts, retries with backoff, and structured error responses
+- Introduce `/health` and `/ready` endpoints
+- Add simple caching to reduce upstream calls
+- Document the API with OpenAPI (Swagger) and include examples
+- Write unit tests (e.g., proficiencies parser, ability roller) and basic integration tests
+
+## Contributing / Development
+- Run code formatters/linters before PRs
+- Keep user-facing messages consistent with the current UI style
+- Prefer small, focused PRs (UI, service behavior, tests) with brief summaries
+
+## License
+MIT (or your chosen license)
