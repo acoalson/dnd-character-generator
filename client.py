@@ -5,11 +5,43 @@ import datetime
 server_url = 'http://127.0.0.1:5000/'
 
 # -----------------------------INTRODUCTION------
+def print_header():
+    print("=" * 80)
+    print("""
+    ╔══════════════════════════════════════════════════════════════════════════════╗
+    ║                                                                              ║
+    ║                            _____             _____                           ║
+    ║                           |  __ \    ___    |  __ \                          ║
+    ║                           | |  | |  ( _ )   | |  | |                         ║
+    ║                           | |  | |  / _ \/\ | |  | |                         ║
+    ║                           | |__| | | (_>  < | |__| |                         ║
+    ║                           |_____/   \___/\/ |_____/                          ║
+    ║                                                                              ║
+    ║                              CHARACTER GENERATOR 🎲                          ║
+    ║                                                                              ║
+    ╚══════════════════════════════════════════════════════════════════════════════╝
+    """)
+    print("=" * 80)
 
-print("Welcome to the D&D Character builder. You will be guided through a serious of prompts to come up with your character")
-print(f"You will choose a race (such as human or halfling) and a class (such as fighter or wizard).\n")
-print("You will also have the option to randomly generate each step of your character but are encouraged to go through each step and use the help feature to learn more information") #1
-input(f"Hit enter when you're ready to begin\n\n")
+def print_section_header(title, emoji=""):
+    print(f"\n{'=' * 80}")
+    print(f"  {emoji} {title.upper()} {emoji}")
+    print('=' * 80)
+
+def print_step(step_num, title, description=""):
+    print(f"\n STEP {step_num}: {title}")
+    if description:
+        print(f"   {description}")
+    print("-" * 60)
+
+print_header()
+print("Welcome to the D&D Character builder! You will be guided through a series of")
+print("prompts to create your character. You'll choose a race (such as human or")
+print("halfling) and a class (such as fighter or wizard).")
+print("\nYou can also randomly generate each step or use the help feature to learn")
+print("more about your options!")
+print("\n" + "=" * 80)
+input("🎯 Press ENTER when you're ready to begin your adventure...\n")
 
 
 #--------------------------------------------RACE--------------------------------------
