@@ -57,14 +57,17 @@ while True:
             if user_input.lower() in ["yes", "y"]: #QUALITY ATTRIBUTE: USABILITY
                 break
         break
-    elif user_input == 'help' or 'HELP': #3
+    elif user_input.lower() == 'help': #3
         race_name = input("Enter the race name for more information: ")
         if race_name in races:
-            get_race_info(race_name)
-            race_info = get_race_info(race_name)
-            print(format_race_description(race_info))
+            try:
+                race_info = get_race_info(race_name)
+                print(format_race_description(race_info))
+            except Exception as e:
+                print(f"Error fetching race info: {e}")
         else:
             print("Race not found.")
+        continue  # Add this line to return to the main loop
     elif user_input in races:
         race_choice = user_input
         print(f"You have chosen {race_choice}")
@@ -119,7 +122,7 @@ proficiency_choice = []
     
 # choose proficiencies
 print(f"\n\n-----------------------------------------------------------")
-print("In the next step, you will choose your characters proficiences")
+print("In the next step, you will choose your characters proficiencies")
 print("Proficiencies represent skills your character will excel at in the game. You get a bonus added to skill checks, saving throws, or attacks for skills that a character is proficient in") #TODO
 print("")
 
