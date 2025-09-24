@@ -305,46 +305,50 @@ for proficiency_choice in class_data['proficiency_choices']:
 #-------------Roll for skills-----------
 #roll skills
 # Write a python method for calculating ability scores in D&D. Roll your stats by rolling 4 x 6-sided dice, dropping the lowest number, and adding the remaining total. Do this for all of the keys in the ability dictionary (ability = {"Strength" : 0, "Dexterity" : 0, "Constitution" : 0, "Intellect" : 0,  "Wisdom" : 0}) and update this dictionary accordingly. prompt the user for inputs and display all the stats at the end
-print(f"\n\n-----------------------------------------------------------")
-print("Lastly you will be rolling to determine your character's base stats which include Strength, Dexterity, Constitution, Intellect, and Wisdom")
-print("You'll roll 4 x 6-sided dice, dropping the lowest number")
+print_section_header("ABILITY SCORES", "🎯")
+print_step(4, "Roll Your Ability Scores",
+          "You'll roll 4d6, drop the lowest, and sum the rest for each ability.")
 ability = {"Strength": 0, "Dexterity": 0, "Constitution": 0, "Intellect": 0, "Wisdom": 0}
 
 
 def roll_ability_scores():
 
     for key in ability:
-        input(f"Press Enter to roll for {key}: ") #6
+        input(f"Press Enter to roll for {key}: ")
         rolls = [random.randint(1, 6) for _ in range(4)]
         rolls.sort()
-        total = sum(rolls[1:])  # Drop the lowest roll and sum the remaining
+        total = sum(rolls[1:])
         ability[key] = total
 
         time.sleep(.5)
-        print(f"Rolls for {key}: {rolls}")
-        time.sleep(.5)
-        print(f"Final {key} score: {total}\n")
+        print("─" * 40)
+        print(f"🎲 Rolls for {key}: {rolls}  → drop {rolls[0]}")
+        time.sleep(.3)
+        print(f"✅ {key} score: {total}\n")
 
+    print("─" * 40)
     print("Ability Scores:")
     for key, value in ability.items():
-        print(f"{key}: {value}")
+        print(f"  {key:<12} {value}")
+    print("─" * 40)
 
 # Call the function to roll ability scores
 roll_ability_scores() # QUALITY ATTRIBUTE: TESTABILITY
 
 
 #----------------------------Ending dialogue-----------------------
-print("---------------------------------------------------------")
-print("Congrats! You have created your character:")
-print("RACE: ", race_choice)
-print("CLASS: ", class_choice)
-print("PROFICIENCES: ")
+print_section_header("CHARACTER SUMMARY", "🏰")
+print("Here is your adventurer:")
+print("─" * 40)
+print(f"RACE:  {race_choice.title()}")
+print(f"CLASS: {class_choice.title()}")
+print("PROFICIENCIES:")
 for selected_proficiency in selected_proficiencies:
-        print(f"- {selected_proficiency}")
-print("STATS: ")
+        print(f"  • {selected_proficiency}")
+print("STATS:")
 for key, value in ability.items():
-        print(f"{key}: {value}")
-
+        print(f"  {key:<12} {value}")
+print("─" * 40)
 
 
 #-------- QUALITY ATTRIBUTE: PERFORMANCE EFFICIENCY
