@@ -53,13 +53,13 @@ def get_race_info(race_name):
 
 # Function to format race description
 def format_race_description(data):
-    description = f"Race: {data['name']}\n"
-    description += f"Alignment: {data['alignment']}\n"
-    description += f"Age: {data['age']}\n"
-    description += f"Size: {data['size']} - {data['size_description']}\n"
-    description += f"Languages: {data['language_desc']}\n"
-    return description
-
+    print(f"\n{'─' * 60}")
+    print(f"🏷️  RACE: {data['name'].upper()}")
+    print(f"⚖️  ALIGNMENT: {data['alignment']}")
+    print(f" AGE: {data['age']}")
+    print(f"📏 SIZE: {data['size']} - {data['size_description']}")
+    print(f"️  LANGUAGES: {data['language_desc']}")
+    print(f"{'─' * 60}")
 
 # Gets all races
 races = requests.post(server_url+'get_races', json={})
@@ -68,45 +68,56 @@ races = [item["index"] for item in races["results"]]
 
 race_choice = ""
 
-
-
 # Interaction with user to determine a race
-print("-------------------------------------------------------------------------")
-print("We will start off by having you select a race for your character")
-print(f"Your choice of race affects many different aspects of your character. It establishes fundamental qualities that exist throughout your character's adventuring career.\n")
-print("Race options: ", ", ".join(races))
-print("")
+print_section_header("RACE SELECTION", "🎲")
+print_step(1, "Choose Your Character's Race", 
+          "Your race affects many aspects of your character - abilities, traits, and roleplay opportunities!")
+
+print(f"\n�� Available Races:")
+print("─" * 40)
+for i, race in enumerate(races, 1):
+    print(f"  {i:2d}. {race.title()}")
+print("─" * 40)
 
 while True:
-    user_input = input("Type your choice or hit enter for a random selection. You can also type HELP for more info\n") #7
+    print(f"\n💭 What would you like to do?")
+    print("   • Type a race name to select it")
+    print("   • Type a number (1-{}) for quick selection".format(len(races)))
+    print("   • Press ENTER for random selection")
+    print("   • Type 'help' for detailed race information")
+    
+    user_input = input(f"\n🎲 Your choice: ").strip()
 
     if user_input == "":
         while True:
             # Pick a random race
             race_choice = random.choice(races)
-            print(f"Randomly selected race: {race_choice}")
-            user_input = input("Keep this race? (yes/no): ") #4
-            if user_input.lower() in ["yes", "y"]: #QUALITY ATTRIBUTE: USABILITY
+            print(f"\n🎲 Randomly selected race: {race_choice.title()}")
+            user_input = input("✅ Keep this race? (yes/no): ")
+            if user_input.lower() in ["yes", "y"]:
                 break
         break
-    elif user_input.lower() == 'help': #3
-        race_name = input("Enter the race name for more information: ")
+    elif user_input.lower() == 'help':
+        race_name = input("🎲 Enter the race name for more information: ").strip()
         if race_name in races:
             try:
                 race_info = get_race_info(race_name)
-                print(format_race_description(race_info))
+                format_race_description(race_info)
             except Exception as e:
-                print(f"Error fetching race info: {e}")
+                print(f"❌ Error fetching race info: {e}")
         else:
-            print("Race not found.")
-        continue  # Add this line to return to the main loop
+            print("❌ Race not found. Please check the spelling.")
+        continue
+    elif user_input.isdigit() and 1 <= int(user_input) <= len(races):
+        race_choice = races[int(user_input) - 1]
+        print(f"✅ You have chosen: {race_choice.title()}")
+        break
     elif user_input in races:
         race_choice = user_input
-        print(f"You have chosen {race_choice}")
+        print(f"✅ You have chosen: {race_choice.title()}")
         break
     else:
-        print("Wrong input. Choose from:\n", ", ".join(races))
- 
+        print("❌ Invalid input. Please choose from the available options above.")
 
 # -----------------------------------CLASSES-------------------------------------
 # Fetch class information from microservice
