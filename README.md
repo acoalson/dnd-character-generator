@@ -12,7 +12,7 @@ Interactive CLI that builds a D&D 5e character using a Flask microservice which 
   ```bash
   pip install -r requirements.txt
   ```
-  If you don't have a requirements file, install directly:
+  Or install directly:
   ```bash
   pip install flask requests
   ```
