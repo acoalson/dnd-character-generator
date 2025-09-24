@@ -212,10 +212,9 @@ while True:
 proficiency_choice = []
     
 # choose proficiencies
-print(f"\n\n-----------------------------------------------------------")
-print("In the next step, you will choose your characters proficiencies")
-print("Proficiencies represent skills your character will excel at in the game. You get a bonus added to skill checks, saving throws, or attacks for skills that a character is proficient in") #TODO
-print("")
+print_section_header("PROFICIENCIES", "📜")
+print_step(3, "Choose Your Proficiencies",
+          "Proficiencies represent skills your character excels at. They grant bonuses to checks, saves, or attacks where applicable.")
 
 class_data = get_class_info(class_choice)
 
@@ -223,35 +222,84 @@ for proficiency_choice in class_data['proficiency_choices']:
     options = [option['item']['name'] for option in proficiency_choice['from']['options']]
     selected_proficiencies = []
 
-    print(f"Choose {proficiency_choice['choose']} from the following options:")
-    print("Type the proficiency or the number corresponding to it to save time :)") #2
-    while proficiency_choice['choose'] > 0:
-        print("Proficiences:")
-        for i, option in enumerate(options):
-            print(f"{i + 1}. {option}")
+    total_to_choose = proficiency_choice['choose']
+    print(f"\nYou may choose {total_to_choose} from the following options:")
+    print("─" * 60)
+    for i, option in enumerate(options):
+        print(f"  {i + 1:2d}. {option}")
+    print("─" * 60)
 
-        if proficiency_choice['choose'] == 1:
-            user_input = input("Enter your choice: ")
-        else:
-            user_input = input(f"Enter your choice ({proficiency_choice['choose']} left): ")
+    while len(selected_proficiencies) < total_to_choose:
+        remaining = total_to_choose - len(selected_proficiencies)
+        prompt = "Select by number or name (comma-separated), 'rand' to auto-fill, 'ls' to show list"
+        user_input = input(f"➡️  {prompt} — {remaining} left: ").strip()
 
-        if user_input.isdigit():
-            index = int(user_input) - 1
-            if 0 <= index < len(options):
-                selected_proficiencies.append(options[index])
-                options.pop(index)
-                proficiency_choice['choose'] -= 1
+        if user_input.lower() == 'ls':
+            print("─" * 60)
+            for i, option in enumerate(options):
+                print(f"  {i + 1:2d}. {option}")
+            print("─" * 60)
+            continue
+
+        if user_input.lower() == 'rand':
+            import random as _random
+            fill_count = min(remaining, len(options))
+            random_picks = [_random.choice(options) for _ in range(fill_count)]
+            # Deduplicate random picks if options < remaining
+            unique_random_picks = []
+            for rp in random_picks:
+                if rp in options and rp not in unique_random_picks:
+                    unique_random_picks.append(rp)
+            for rp in unique_random_picks:
+                options.remove(rp)
+                selected_proficiencies.append(rp)
+                print(f"✅ Added: {rp}")
+            continue
+
+        # Parse comma-separated selections
+        tokens = [t.strip() for t in user_input.split(',') if t.strip()]
+        if not tokens:
+            print("❌ No input detected. Please enter numbers, names, 'rand', or 'ls'.")
+            continue
+
+        additions_this_round = []
+        for token in tokens:
+            if len(selected_proficiencies) + len(additions_this_round) >= total_to_choose:
+                break
+            if token.isdigit():
+                idx = int(token) - 1
+                if 0 <= idx < len(options):
+                    choice_name = options[idx]
+                    if choice_name not in additions_this_round:
+                        additions_this_round.append(choice_name)
+                else:
+                    print(f"❌ {token} is out of range.")
             else:
-                print("Invalid choice. Please select a valid option.")
-        else:
-            print("Invalid input. Please enter the number corresponding to your choice.")
+                # name match (case-sensitive to match list)
+                matches = [opt for opt in options if opt.lower() == token.lower()]
+                if matches:
+                    choice_name = matches[0]
+                    if choice_name not in additions_this_round:
+                        additions_this_round.append(choice_name)
+                else:
+                    print(f"❌ '{token}' not found in available options. Type 'ls' to list.")
+
+        if not additions_this_round:
+            continue
+
+        # Apply additions
+        for chosen in additions_this_round:
+            if chosen in options and len(selected_proficiencies) < total_to_choose:
+                options.remove(chosen)
+                selected_proficiencies.append(chosen)
+                print(f"✅ Added: {chosen}")
 
     proficiency_choice = selected_proficiencies
 
-    print(f"\nYou have selected the following proficiencies:")
+    print(f"\n🎯 You selected:")
     for selected_proficiency in selected_proficiencies:
-        print(f"- {selected_proficiency}")
-
+        print(f"  • {selected_proficiency}")
+    print("─" * 60)
 
 
 #-------------Roll for skills-----------
@@ -261,6 +309,7 @@ print(f"\n\n-----------------------------------------------------------")
 print("Lastly you will be rolling to determine your character's base stats which include Strength, Dexterity, Constitution, Intellect, and Wisdom")
 print("You'll roll 4 x 6-sided dice, dropping the lowest number")
 ability = {"Strength": 0, "Dexterity": 0, "Constitution": 0, "Intellect": 0, "Wisdom": 0}
+
 
 def roll_ability_scores():
 
