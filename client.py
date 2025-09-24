@@ -127,6 +127,29 @@ def get_class_info(class_name):
     response = requests.post(server_url+'get_class_info', json=data)
     return response.json()
 
+# Enhanced formatter for class information
+def format_class_description(data):
+    try:
+        print(f"\n{'─' * 60}")
+        print(f"🛡️  CLASS: {data.get('name', 'Unknown').upper()}")
+        if 'hit_die' in data:
+            print(f"🎲 HIT DIE: d{data['hit_die']}")
+        # Saving throws
+        if 'saving_throws' in data and data['saving_throws']:
+            saving = ", ".join(st.get('name', 'Unknown') for st in data['saving_throws'])
+            print(f"💪 SAVING THROWS: {saving}")
+        # Core proficiencies
+        if 'proficiencies' in data and data['proficiencies']:
+            profs = ", ".join(p.get('name', 'Unknown') for p in data['proficiencies'][:8])
+            print(f"📜 PROFICIENCIES: {profs}{' …' if len(data['proficiencies']) > 8 else ''}")
+        # Subclasses (if any)
+        if 'subclasses' in data and data['subclasses']:
+            subclasses = ", ".join(sc.get('name', 'Unknown') for sc in data['subclasses'])
+            print(f"🏷️  SUBCLASSES: {subclasses}")
+        print(f"{'─' * 60}")
+    except Exception as _:
+        print("❌ Unable to format class details.")
+
 # Gets all classes
 classes = requests.post(server_url+'get_classes', json={})
 classes = classes.json()
@@ -136,29 +159,54 @@ class_choice = ""
 
 
 # Interaction with user to determine class
-print(f"\n\n-----------------------------------------------------------")
-print("In the next step, choose a class for your character.")
-print(f"Every adventurer is a member of a class. Class broadly describes a character's vocation, what special talents he or she possesses, and the tactics he or she is most likely to employ when exploring a dungeon, fighting monsters, or engaging in a tense negotiation\n")
-print("Class options: ", ", ".join(classes))
+print_section_header("CLASS SELECTION", "🧭")
+print_step(2, "Choose Your Character's Class",
+          "Your class defines your vocation, combat style, and special talents.")
+
+print(f"\nAvailable Classes:")
+print("─" * 40)
+for i, class_name in enumerate(classes, 1):
+    print(f"  {i:2d}. {class_name.title()}")
+print("─" * 40)
 
 while True:
-    user_input = input(f"\nWhat Class do you want? Type one of the choices above, hit enter for random, or 'help' for more info\n")
+    print(f"\n💭 What would you like to do?")
+    print("   • Type a class name to select it")
+    print("   • Type a number (1-{}) for quick selection".format(len(classes)))
+    print("   • Press ENTER for random selection")
+    print("   • Type 'help' for detailed class information")
+
+    user_input = input(f"\n⚔️  Your choice: ").strip()
 
     if user_input == "":
-        # Pick a random class
         while True:
             class_choice = random.choice(classes)
-            print(f"Randomly selected class: {class_choice}")
-            user_input = input("Keep this class? (yes/no): ") #5
+            print(f"\n🎲 Randomly selected class: {class_choice.title()}")
+            user_input = input("✅ Keep this class? (yes/no): ")
             if user_input.lower() in ["yes", "y"]:
                 break
         break
+    elif user_input.lower() == 'help':
+        class_name = input("⚔️  Enter the class name for more information: ").strip()
+        if class_name in classes:
+            try:
+                class_info = get_class_info(class_name)
+                format_class_description(class_info)
+            except Exception as e:
+                print(f"❌ Error fetching class info: {e}")
+        else:
+            print("❌ Class not found. Please check the spelling.")
+        continue
+    elif user_input.isdigit() and 1 <= int(user_input) <= len(classes):
+        class_choice = classes[int(user_input) - 1]
+        print(f"✅ You have chosen: {class_choice.title()}")
+        break
     elif user_input in classes:
         class_choice = user_input
-        print(f"You have chosen {class_choice}")
+        print(f"✅ You have chosen: {class_choice.title()}")
         break
     else:
-        print("Wrong input. Choose from:\n", ", ".join(classes))
+        print("❌ Invalid input. Please choose from the available options above.")
 
 #-------------------------PROFICIENCES--------
 proficiency_choice = []
