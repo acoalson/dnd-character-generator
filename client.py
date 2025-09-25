@@ -1,11 +1,19 @@
+"""
+Interactive CLI for building a D&D 5e character.
+Flow: header → race selection → class selection → proficiencies → ability rolls → summary.
+External dependency: talks to a local Flask microservice in server.py for races/classes data.
+"""
 import requests
 import random, time
 import datetime
 
 server_url = 'http://127.0.0.1:5000/'
+RACES_SERVICE_URL = 'http://127.0.0.1:5001/'
+CLASSES_SERVICE_URL = 'http://127.0.0.1:5002/'
 
 # -----------------------------INTRODUCTION------
 def print_header():
+    """Print the branded ASCII banner and intro separators."""
     print("=" * 80)
     print("""
     ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -24,11 +32,13 @@ def print_header():
     print("=" * 80)
 
 def print_section_header(title, emoji=""):
+    """Print a visual section divider with a title and optional emoji."""
     print(f"\n{'=' * 80}")
     print(f"  {emoji} {title.upper()} {emoji}")
     print('=' * 80)
 
 def print_step(step_num, title, description=""):
+    """Print a step header with optional one-line description."""
     print(f"\n STEP {step_num}: {title}")
     if description:
         print(f"   {description}")
@@ -47,12 +57,17 @@ input("🎯 Press ENTER when you're ready to begin your adventure...\n")
 #--------------------------------------------RACE--------------------------------------
 # Function to fetch class information from microservice
 def get_race_info(race_name):
+    """POST to races service to fetch details for a given race.
+    Request: { 'race': <race_index> }
+    Returns: upstream JSON dict on success; may raise/return invalid JSON if service fails.
+    """
     data = {'race': race_name}
-    response = requests.post(server_url+'get_race_info', json=data)
+    response = requests.post(RACES_SERVICE_URL+'get_race_info', json=data)
     return response.json()
 
 # Function to format race description
 def format_race_description(data):
+    """Pretty-print race details. Expects keys: name, alignment, age, size, size_description, language_desc."""
     print(f"\n{'─' * 60}")
     print(f"🏷️  RACE: {data['name'].upper()}")
     print(f"⚖️  ALIGNMENT: {data['alignment']}")
@@ -62,7 +77,7 @@ def format_race_description(data):
     print(f"{'─' * 60}")
 
 # Gets all races
-races = requests.post(server_url+'get_races', json={})
+races = requests.post(RACES_SERVICE_URL+'get_races', json={})
 races = races.json()
 races = [item["index"] for item in races["results"]]
 
@@ -73,12 +88,13 @@ print_section_header("RACE SELECTION", "🎲")
 print_step(1, "Choose Your Character's Race", 
           "Your race affects many aspects of your character - abilities, traits, and roleplay opportunities!")
 
-print(f"\n�� Available Races:")
+print(f"\nAvailable Races:")
 print("─" * 40)
 for i, race in enumerate(races, 1):
     print(f"  {i:2d}. {race.title()}")
 print("─" * 40)
 
+# Accepted inputs: name, number (1-N), ENTER for random, 'help' to view details for a race
 while True:
     print(f"\n💭 What would you like to do?")
     print("   • Type a race name to select it")
@@ -122,13 +138,18 @@ while True:
 # -----------------------------------CLASSES-------------------------------------
 # Fetch class information from microservice
 def get_class_info(class_name):
+    """POST to classes service to fetch details for a given class.
+    Request: { 'class': <class_index> }
+    Returns: upstream JSON dict on success; may raise/return invalid JSON if service fails.
+    """
     #TODO change to hardcoded
     data = {'class': class_name}
-    response = requests.post(server_url+'get_class_info', json=data)
+    response = requests.post(CLASSES_SERVICE_URL+'get_class_info', json=data)
     return response.json()
 
 # Enhanced formatter for class information
 def format_class_description(data):
+    """Pretty-print class details. Expects keys: name, hit_die, saving_throws, proficiencies, subclasses."""
     try:
         print(f"\n{'─' * 60}")
         print(f"🛡️  CLASS: {data.get('name', 'Unknown').upper()}")
@@ -151,7 +172,7 @@ def format_class_description(data):
         print("❌ Unable to format class details.")
 
 # Gets all classes
-classes = requests.post(server_url+'get_classes', json={})
+classes = requests.post(CLASSES_SERVICE_URL+'get_classes', json={})
 classes = classes.json()
 classes = [item["index"] for item in classes["results"]]
 
@@ -169,6 +190,7 @@ for i, class_name in enumerate(classes, 1):
     print(f"  {i:2d}. {class_name.title()}")
 print("─" * 40)
 
+# Accepted inputs: name, number (1-N), ENTER for random, 'help' to view details for a class
 while True:
     print(f"\n💭 What would you like to do?")
     print("   • Type a class name to select it")
@@ -256,7 +278,7 @@ for proficiency_choice in class_data['proficiency_choices']:
                 print(f"✅ Added: {rp}")
             continue
 
-        # Parse comma-separated selections
+        # Parse comma-separated selections from numbers and/or names; dedupe per round
         tokens = [t.strip() for t in user_input.split(',') if t.strip()]
         if not tokens:
             print("❌ No input detected. Please enter numbers, names, 'rand', or 'ls'.")
@@ -275,7 +297,7 @@ for proficiency_choice in class_data['proficiency_choices']:
                 else:
                     print(f"❌ {token} is out of range.")
             else:
-                # name match (case-sensitive to match list)
+                # name match (case-insensitive)
                 matches = [opt for opt in options if opt.lower() == token.lower()]
                 if matches:
                     choice_name = matches[0]
@@ -287,7 +309,7 @@ for proficiency_choice in class_data['proficiency_choices']:
         if not additions_this_round:
             continue
 
-        # Apply additions
+        # Apply additions and confirm to user
         for chosen in additions_this_round:
             if chosen in options and len(selected_proficiencies) < total_to_choose:
                 options.remove(chosen)
@@ -312,6 +334,7 @@ ability = {"Strength": 0, "Dexterity": 0, "Constitution": 0, "Intellect": 0, "Wi
 
 
 def roll_ability_scores():
+    """Roll 4d6 per ability, drop the lowest die, sum remaining, and mutate the global ability dict."""
 
     for key in ability:
         input(f"Press Enter to roll for {key}: ")
